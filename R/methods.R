@@ -41,7 +41,7 @@ boot_pval <- function(tau, tau_B, type = 'geq'){
 #' @references Russell Davidson & James G. MacKinnon (2000), Bootstrap tests: how many bootstraps?, Econometric Reviews, 19:1, 55-68.
 #' 
 #' @export
-boot_pretest <- function(tau, gamma_null, n, type = 'geq', alpha = 0.05, 
+boot_pretest <- function(tau, gamma_null, std, n, type = 'geq', alpha = 0.05, 
                          B_min = 99, B_max = 12799, beta = 0.001, seed = NULL){
   # initialize number of bootstraps
   B <- B_min
@@ -54,7 +54,7 @@ boot_pretest <- function(tau, gamma_null, n, type = 'geq', alpha = 0.05,
   tau_B <- matrix(0,0,1)
   stop <- FALSE
   while (stop==FALSE){
-    tau_B_tmp <- boot_vec(gamma_null, 1, n, B_tmp)
+    tau_B_tmp <- boot_vec(gamma_null, std, n, B_tmp)
     tau_B = c(tau_B, tau_B_tmp)
     # Compute Bootstrap p-value
     pval <- boot_pval(tau, tau_B, type)
@@ -88,4 +88,36 @@ boot_pretest <- function(tau, gamma_null, n, type = 'geq', alpha = 0.05,
   return(c(length(tau_B), pval))
 }
 
+
+# -----------------------------------------------------------------------------
+#' @title Test statistic
+#' 
+#' @description This function computes test statistics for 'T-test' and 'F-test'. 
+#'
+#' 
+#' @export
+compute_tstat <- function(mdl, null_vec, type = 'F-test'){
+  out     <- summary(mdl)
+  coef    <- as.matrix(out$coefficients[,1])
+  stderr  <- as.matrix(out$coefficients[,2])
+  # run checks
+  if (length(coef)!=length(null_vec)){
+    stop("the vector 'null_vec' must be of same length as parameter vector. Use vallue 'NA' for arameters not being tested.")
+  }
+  #std     <- sqrt(sum(mdl$residuals^2)/(n-1)) 
+  if (type == 'T-test'){
+    if (sum(is.na(null_vec)==FALSE)==1){
+      theta_hat <- coef[is.na(null_vec)==FALSE,]
+      theta_null <- null_vec[is.na(null_vec)==FALSE]
+      theta_std_err <- stderr[is.na(null_vec)==FALSE,]
+      tau <- (theta_hat - theta_null)/theta_std_err 
+    }else{
+      stop("T-test only allows one value in 'null_vec' to be different from NA. For test of multiple parameters use 'F-test'.")
+    }
+  }else if (type == "F-test"){
+    # not ready
+  }
+  names(tau) <- NULL
+  return(tau)
+}
 

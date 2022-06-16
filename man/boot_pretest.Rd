@@ -7,6 +7,7 @@
 boot_pretest(
   tau,
   gamma_null,
+  std,
   n,
   type = "geq",
   alpha = 0.05,

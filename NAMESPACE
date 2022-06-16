@@ -3,5 +3,6 @@
 export(boot_pretest)
 export(boot_pval)
 export(boot_vec)
+export(compute_tstat)
 importFrom(Rcpp,sourceCpp)
 useDynLib(Bootpretest, .registration = TRUE)
