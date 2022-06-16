@@ -1,13 +1,13 @@
 Package: Bootpretest
 Type: Package
-Title: What the Package Does in One 'Title Case' Line
+Title: Bootpretest
 Version: 1.0
 Date: 2022-06-16
-Author: Your Name
-Maintainer: Your Name <your@email.com>
-Description: One paragraph description of what the package does as one or more full sentences.
+Author: Gabriel Rodriguez Rondon
+Maintainer: Gabriel Rodriguez  <gabriel.rodriguezrondon@mail.mcgill.ca>
+Description: This package allows the user to perform the bootstrap pre-test procedure described in Davidson &amp;amp; MacKinnon (2000) to determine an appropriate number of bootstrap simulations to use to minimize loss of power resulting from sampling.
 License: GPL (>= 2)
-Imports: Rcpp (>= 1.0.8)
-LinkingTo: Rcpp
+Imports: Rcpp (>= 1.0.8), RcppArmadillo
+LinkingTo: Rcpp, RcppArmadillo
 Encoding: UTF-8
 RoxygenNote: 7.1.1

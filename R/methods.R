@@ -31,6 +31,7 @@ boot_pval <- function(tau, tau_B, type = 'geq'){
   return(pval)
 }
 
+
 # -----------------------------------------------------------------------------
 #' @title Bootstrap Pretest
 #' 
@@ -53,14 +54,7 @@ boot_pretest <- function(tau, gamma_null, n, type = 'geq', alpha = 0.05,
   tau_B <- matrix(0,0,1)
   stop <- FALSE
   while (stop==FALSE){
-    tau_B_tmp <- matrix(0,B_tmp,1)
-    for (xb in 1:(B_tmp)){
-      y_t_sim <- gamma_null + rnorm(n)
-      gamma_hat_sim <- mean(y_t_sim)
-      std_sim <- sqrt(sum((y_t_sim-gamma_hat_sim)^2)/(n-1))
-      tau_sim <- (gamma_hat_sim - gamma_null)/(std_sim/sqrt(n))
-      tau_B_tmp[xb] <- tau_sim
-    }
+    tau_B_tmp <- boot_vec(gamma_null, 1, n, B_tmp)
     tau_B = c(tau_B, tau_B_tmp)
     # Compute Bootstrap p-value
     pval <- boot_pval(tau, tau_B, type)
