@@ -49,14 +49,13 @@ boot_pretest <- function(tau, tau_B, type = 'geq', B_max = 12799, alpha = 0.05, 
     if (B<(10/alpha)){
       check <- 1 - pbinom(pval*B,B, alpha, lower.tail = FALSE) 
     }else{
-      #alpha_cc <- alpha + 0.5
-      check <- 1 - pnorm(pval*B, B*alpha - 0.5, sqrt(B*alpha*(1-alpha)), lower.tail = FALSE)
+      check <- 1 - pnorm(pval*B, B*alpha + 0.5, sqrt(B*alpha*(1-alpha)), lower.tail = FALSE)
     }
   }else if (pval>alpha){
     if (B<(10/alpha)){
       check <- pbinom(pval*B,B,alpha,lower.tail = FALSE)
     }else{
-      check <- pnorm(pval*B, B*alpha + 0.5, sqrt(B*alpha*(1-alpha)), lower.tail = FALSE)
+      check <- pnorm(pval*B, B*alpha - 0.5, sqrt(B*alpha*(1-alpha)), lower.tail = FALSE)
     }
   }
   val <- (check<=beta)
