@@ -31,6 +31,61 @@ boot_pval <- function(tau, tau_B, type = 'geq'){
   return(pval)
 }
 
+# -----------------------------------------------------------------------------
+#' @title Bootstrap Pretest
+#' 
+#' @description This function performs the pretest preocedure described in Davidson & MacKinnon (2000) to determine the appropriate number of simulations needed to minize loss of power.
+#'
+#' 
+#' @references Russell Davidson & James G. MacKinnon (2000), Bootstrap tests: how many bootstraps?, Econometric Reviews, 19:1, 55-68.
+#' 
+#' @export
+boot_pretest <- function(tau, tau_B, type = 'geq', B_max = 12799, alpha = 0.05, beta = 0.001){
+  B <- length(tau_B)
+  # Compute Bootstrap p-value
+  pval <- boot_pval(tau, tau_B, type)
+  # check if B is enough
+  if (pval<=alpha){
+    if (B<(10/alpha)){
+      check <- 1 - pbinom(pval*B,B, alpha, lower.tail = FALSE) 
+    }else{
+      check <- 1 - pnorm(pval*B, B*alpha + 0.5, sqrt(B*alpha*(1-alpha)), lower.tail = FALSE)
+    }
+  }else if (pval>alpha){
+    if (B<(10/alpha)){
+      check <- pbinom(pval*B,B,alpha,lower.tail = FALSE)
+    }else{
+      check <- pnorm(pval*B, B*alpha + 0.5, sqrt(B*alpha*(1-alpha)), lower.tail = FALSE)
+    }
+  }
+  val <- (check<=beta)
+  if (val==TRUE){
+    # stop 
+    B_next = 0
+    msg <- paste0("Test is rejected - Sufficient number of simulations")
+  }else{
+    # continue
+    B_next = B + 1
+    msg <- paste0("Fail to reject test - Consider using an additional ", B_next, " number of simulations")
+    if (B>B_max){
+      val <- FALSE
+      msg <- paste0("Reached max number of simulations")
+    }
+  } 
+  test_output <- list()
+  test_output$B <- B
+  test_output$boot_pval <- pval
+  test_output$beta <- beta
+  test_output$alpha <- alpha
+  test_output$pval <- check
+  test_output$val <- val
+  test_output$message <- msg
+  test_output$B_next <- B_next
+  return(test_output)
+}
+
+
+
 
 # -----------------------------------------------------------------------------
 #' @title Bootstrap Pretest
@@ -41,7 +96,7 @@ boot_pval <- function(tau, tau_B, type = 'geq'){
 #' @references Russell Davidson & James G. MacKinnon (2000), Bootstrap tests: how many bootstraps?, Econometric Reviews, 19:1, 55-68.
 #' 
 #' @export
-boot_pretest <- function(tau, gamma_null, std, n, type = 'geq', alpha = 0.05, 
+boot_and_pretest <- function(tau, gamma_null, std, n, type = 'geq', alpha = 0.05, 
                          B_min = 99, B_max = 12799, beta = 0.001, seed = NULL){
   # initialize number of bootstraps
   B <- B_min
@@ -55,33 +110,21 @@ boot_pretest <- function(tau, gamma_null, std, n, type = 'geq', alpha = 0.05,
   stop <- FALSE
   while (stop==FALSE){
     tau_B_tmp <- boot_vec(gamma_null, std, n, B_tmp)
-    tau_B = c(tau_B, tau_B_tmp)
+    tau_B <- c(tau_B, tau_B_tmp)
+    boottest <- boot_pretest(tau, tau_B, type = type, B_max = B_max, alpha = alpha, beta = beta)
     # Compute Bootstrap p-value
-    pval <- boot_pval(tau, tau_B, type)
-    # check if B is enough
-    if (pval<=alpha){
-      if (B<(10/alpha)){
-        check <- 1 - pbinom(pval*B,B, alpha, lower.tail = FALSE) 
-      }else{
-        check <- 1 - pnorm(pval*B, B*alpha, sqrt(B*alpha*(1-alpha)), lower.tail = FALSE)
-      }
-    }else if (pval>alpha){
-      if (B<(10/alpha)){
-        check <- pbinom(pval*B,B,alpha,lower.tail = FALSE)
-      }else{
-        check <- pnorm(pval*B, B*alpha, sqrt(B*alpha*(1-alpha)), lower.tail = FALSE)
-      }
-    }
-    if (check<=beta){
+    pval <- boottest$boot_pval
+    val <- boottest$val
+    if (val==TRUE){
       # stop 
-      stop = TRUE
+      stop <- TRUE
     }else{
       # continue
-      B = 2*B_prime + 1
-      B_tmp = B_prime + 1
-      B_prime = B
+      B <- 2*B_prime + 1
+      B_tmp <- B_prime + 1
+      B_prime <- B
       if (B>B_max){
-        stop = TRUE
+        stop <- TRUE
       }
     } 
   }
@@ -96,7 +139,7 @@ boot_pretest <- function(tau, gamma_null, std, n, type = 'geq', alpha = 0.05,
 #'
 #' 
 #' @export
-compute_tstat <- function(mdl, null_vec, type = 'F-test'){
+compute_stat <- function(mdl, null_vec, type = 'F-test'){
   out     <- summary(mdl)
   coef    <- as.matrix(out$coefficients[,1])
   stderr  <- as.matrix(out$coefficients[,2])
@@ -117,6 +160,26 @@ compute_tstat <- function(mdl, null_vec, type = 'F-test'){
   }else if (type == "F-test"){
     # not ready
   }
+  names(tau) <- NULL
+  return(tau)
+}
+
+# -----------------------------------------------------------------------------
+#' @title Test statistic for simulated sample
+#' 
+#' @description This function estimates the model & computes test statistics for simulated samples
+#'
+#' 
+#' @export
+simu_stat <- function(y_t, x_t = NULL, null_vec, type = 'F-test'){
+  
+  # simulate data under null
+  
+  # estimate model 
+  
+  
+  # compute test stat
+  
   names(tau) <- NULL
   return(tau)
 }
